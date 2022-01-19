@@ -26,13 +26,47 @@ import socketserver
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
         print ("Got a request of: %s\n" % self.data)
+
+        # self.index_html()
+        # self.base_css()
+        # self.deep_css()
+        # self.deep_index()
+
         self.request.sendall(bytearray("OK",'utf-8'))
+
+
+    def base_css(self):
+        file = open('./www/base.css', 'r')
+        content = file.read()
+        file.close()
+        response = 'HTTP/1.1 200 OK\nContent-Type: text/css\n\n' + content
+        self.request.sendall(response.encode())
+
+    def index_html(self):
+        file = open('./www/index.html', 'r')
+        content = file.read()
+        file.close()
+        response = 'HTTP/1.1 200 OK\nContent-Type: text/html\n\n' + content
+        self.request.sendall(response.encode())
+
+    def deep_css(self):
+        file = open('./www/deep/deep.css', 'r')
+        content = file.read()
+        file.close()
+        response = 'HTTP/1.1 200 OK\nContent-Type: text/css\n\n' + content
+        self.request.sendall(response.encode())
+
+    def deep_index(self):
+        file = open('./www/deep/index.html', 'r')
+        content = file.read()
+        file.close()
+        response = 'HTTP/1.1 200 OK\n\n' + content
+        self.request.sendall(response.encode())
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
