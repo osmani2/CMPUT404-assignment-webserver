@@ -26,18 +26,33 @@ import socketserver
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
+from urllib import request, error 
+
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
+        path = self.data.decode("utf-8")
         print ("Got a request of: %s\n" % self.data)
 
-        # self.index_html()
-        # self.base_css()
-        # self.deep_css()
-        # self.deep_index()
+        if "GET /index.html HTTP/1.1" in path:
+            self.index_html()
+        
+        elif "GET /base.css HTTP/1.1" in path:
+            self.base_css()
+        
+        elif "GET /deep/deep.css HTTP/1.1" in path:
+            self.deep_css()
+        
+        elif "GET /deep/index.html HTTP/1.1" in path:
+            self.deep_index()
 
-        self.request.sendall(bytearray("OK",'utf-8'))
+        elif "GET HTTP/1.1" in path:
+            self.request.sendall(bytearray("OK",'utf-8'))
+
+        else:
+            response = 'HTTP/1.1 404 Not Found\n\n'
+            self.request.sendall(response.encode())
 
 
     def base_css(self):
