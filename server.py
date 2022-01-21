@@ -1,6 +1,10 @@
 #  coding: utf-8 
 import socketserver
 
+# NAME: Natasha Osmani
+# CCID: nahmed2
+# LAB: H01
+#
 # Copyright 2013 Abram Hindle, Eddie Antonio Santos
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -35,36 +39,47 @@ class MyWebServer(socketserver.BaseRequestHandler):
         req = self.data.decode("utf-8").split('\r\n')[0].split(' ')
         print ("Got a request of: %s\n" % self.data)
 
+        # Only allowing GET requests
         if req[0]!="GET":
             response = 'HTTP/1.1 405 Method Not Allowed\n\n'
             self.request.sendall(response.encode())
+        
+        # GET the requested page
         else:
+            # A valid path
             if path.exists(BASE_PATH+req[1]):
+                # Redirects for directories that don't end in'/'
                 if (not path.isfile(BASE_PATH+req[1]) and (req[1][len(req[1])-1] != '/')):
                     req[1]+='/'
                     response = 'HTTP/1.1 301 Moved Permanently\nLocation: '+'http://127.0.0.1:8080'+req[1]+'\n\n'
                     self.request.sendall(response.encode())
-
+                
+                # Valid path, serve files
                 else:
-                    self.handle_files(req[1])
-
+                    self.serve_files(req[1])
+            
+            # No such path exists
             else:
                 response = 'HTTP/1.1 404 Not Found\n\n'
                 self.request.sendall(response.encode())
 
-    def handle_files(self,request):
+    def serve_files(self,request):
         file_path = BASE_PATH+request
         res = 'HTTP/1.1 200 OK\n'
+
+        # Set content type
         if ".css" in request:
             res+='Content-Type: text/css\n\n'
 
         elif ".html" in request:
             res+='Content-Type: text/html\n\n'
 
+        # Serve index.html in directory
         else:
             res+='Content-Type: text/html\n\n'
             file_path +='index.html'
         
+        # Attempt to open .html or .css file
         try:
             file = open(file_path, 'r')
             content = file.read()
@@ -72,6 +87,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
             res += content
             self.request.sendall(res.encode())
         
+        # Not proper directory for files
         except Exception:
             response = 'HTTP/1.1 404 Not Found\n\n'
             self.request.sendall(response.encode())
