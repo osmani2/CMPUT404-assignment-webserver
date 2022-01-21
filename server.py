@@ -28,7 +28,6 @@ import socketserver
 
 from os import path 
 BASE_PATH = "./www"
-BASE_URL = "http://127.0.0.1:8080"
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
@@ -39,41 +38,43 @@ class MyWebServer(socketserver.BaseRequestHandler):
         if req[0]!="GET":
             response = 'HTTP/1.1 405 Method Not Allowed\n\n'
             self.request.sendall(response.encode())
-
         else:
             if path.exists(BASE_PATH+req[1]):
                 if (not path.isfile(BASE_PATH+req[1]) and (req[1][len(req[1])-1] != '/')):
-                    response = 'HTTP/1.1 301 Moved Permanently\nLocation: '+BASE_URL+req[1]+'/\n\n'
+                    req[1]+='/'
+                    response = 'HTTP/1.1 301 Moved Permanently\nLocation: '+'http://127.0.0.1:8080'+req[1]+'\n\n'
                     self.request.sendall(response.encode())
-
-                file_path = BASE_PATH+req[1]
-                res = 'HTTP/1.1 200 OK\n'
-                if ".css" in req[1]:
-                    res+='Content-Type: text/css\n\n'
-
-                elif ".html" in req[1]:
-                    res+='Content-Type: text/html\n\n'
 
                 else:
-                    res+='Content-Type: text/html\n\n'
-                    file_path = BASE_PATH+req[1]+'index.html'
-                
-                try:
-                    file = open(file_path, 'r')
-                
-                except Exception:
-                    response = 'HTTP/1.1 404 Not Found\n\n'
-                    self.request.sendall(response.encode())
-
-                content = file.read()
-                file.close()
-                res += content
-                self.request.sendall(res.encode())
+                    self.handle_files(req[1])
 
             else:
                 response = 'HTTP/1.1 404 Not Found\n\n'
                 self.request.sendall(response.encode())
 
+    def handle_files(self,request):
+        file_path = BASE_PATH+request
+        res = 'HTTP/1.1 200 OK\n'
+        if ".css" in request:
+            res+='Content-Type: text/css\n\n'
+
+        elif ".html" in request:
+            res+='Content-Type: text/html\n\n'
+
+        else:
+            res+='Content-Type: text/html\n\n'
+            file_path +='index.html'
+        
+        try:
+            file = open(file_path, 'r')
+            content = file.read()
+            file.close()
+            res += content
+            self.request.sendall(res.encode())
+        
+        except Exception:
+            response = 'HTTP/1.1 404 Not Found\n\n'
+            self.request.sendall(response.encode())
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
