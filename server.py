@@ -45,12 +45,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
             if path.exists(BASE_PATH+req[1]):
 
                 res = 'HTTP/1.1 200 OK\n'
-                if "html" in req[1]:
-                    res+='Content-Type: text/html\n\n'
-                elif "css" in req[1]:
+                if "css" in req[1]:
                     res+='Content-Type: text/css\n\n'
                 else:
-                    res+='\n'
+                    res+='Content-Type: text/html\n\n'
                 
                 if path.isfile(BASE_PATH+req[1]):
                     file = open(BASE_PATH+req[1], 'r')
