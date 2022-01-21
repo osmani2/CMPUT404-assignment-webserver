@@ -26,9 +26,9 @@ import socketserver
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-import os.path
 from os import path 
 BASE_PATH = "./www"
+BASE_URL = "http://127.0.0.1:8080"
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
@@ -42,6 +42,10 @@ class MyWebServer(socketserver.BaseRequestHandler):
 
         else:
             if path.exists(BASE_PATH+req[1]):
+                if (not path.isfile(BASE_PATH+req[1]) and (req[1][len(req[1])-1] != '/')):
+                    response = 'HTTP/1.1 301 Moved Permanently\nLocation: '+BASE_URL+req[1]+'/\n\n'
+                    self.request.sendall(response.encode())
+
                 file_path = BASE_PATH+req[1]
                 res = 'HTTP/1.1 200 OK\n'
                 if ".css" in req[1]:
@@ -56,21 +60,19 @@ class MyWebServer(socketserver.BaseRequestHandler):
                 
                 try:
                     file = open(file_path, 'r')
-                    content = file.read()
-                    file.close()
-                    res += content
                 
                 except Exception:
                     response = 'HTTP/1.1 404 Not Found\n\n'
                     self.request.sendall(response.encode())
 
+                content = file.read()
+                file.close()
+                res += content
                 self.request.sendall(res.encode())
 
             else:
                 response = 'HTTP/1.1 404 Not Found\n\n'
                 self.request.sendall(response.encode())
-
-        self.request.sendall(bytearray("OK",'utf-8'))
 
 
 if __name__ == "__main__":
