@@ -1,7 +1,7 @@
 #  coding: utf-8 
 import socketserver
 
-# NAME: Natasha Osmani
+# Copyright 2022 Natasha Osmani
 # CCID: nahmed2
 # LAB: H01
 #
@@ -36,7 +36,7 @@ class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        req = self.data.decode("utf-8").split('\r\n')[0].split(' ')
+        req = self.data.decode("utf-8").split('\r\n')[0].split(' ') # split data for parsing
         print ("Got a request of: %s\n" % self.data)
 
         # Only allowing GET requests
