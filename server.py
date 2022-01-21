@@ -40,21 +40,29 @@ class MyWebServer(socketserver.BaseRequestHandler):
             response = 'HTTP/1.1 405 Method Not Allowed\n\n'
             self.request.sendall(response.encode())
 
-
         else:
             if path.exists(BASE_PATH+req[1]):
-
+                file_path = BASE_PATH+req[1]
                 res = 'HTTP/1.1 200 OK\n'
-                if "css" in req[1]:
+                if ".css" in req[1]:
                     res+='Content-Type: text/css\n\n'
+
+                elif ".html" in req[1]:
+                    res+='Content-Type: text/html\n\n'
+
                 else:
                     res+='Content-Type: text/html\n\n'
+                    file_path = BASE_PATH+req[1]+'index.html'
                 
-                if path.isfile(BASE_PATH+req[1]):
-                    file = open(BASE_PATH+req[1], 'r')
+                try:
+                    file = open(file_path, 'r')
                     content = file.read()
                     file.close()
                     res += content
+                
+                except Exception:
+                    response = 'HTTP/1.1 404 Not Found\n\n'
+                    self.request.sendall(response.encode())
 
                 self.request.sendall(res.encode())
 
