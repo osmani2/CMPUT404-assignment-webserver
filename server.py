@@ -26,62 +26,46 @@ import socketserver
 
 # try: curl -v -X GET http://127.0.0.1:8080/
 
-from urllib import request, error 
-
+import os.path
+from os import path 
+BASE_PATH = "./www"
 class MyWebServer(socketserver.BaseRequestHandler):
     
     def handle(self):
         self.data = self.request.recv(1024).strip()
-        path = self.data.decode("utf-8")
+        req = self.data.decode("utf-8").split('\r\n')[0].split(' ')
         print ("Got a request of: %s\n" % self.data)
 
-        if "GET /index.html HTTP/1.1" in path:
-            self.index_html()
-        
-        elif "GET /base.css HTTP/1.1" in path:
-            self.base_css()
-        
-        elif "GET /deep/deep.css HTTP/1.1" in path:
-            self.deep_css()
-        
-        elif "GET /deep/index.html HTTP/1.1" in path:
-            self.deep_index()
-
-        elif "GET HTTP/1.1" in path:
-            self.request.sendall(bytearray("OK",'utf-8'))
-
-        else:
-            response = 'HTTP/1.1 404 Not Found\n\n'
+        if req[0]!="GET":
+            response = 'HTTP/1.1 405 Method Not Allowed\n\n'
             self.request.sendall(response.encode())
 
 
-    def base_css(self):
-        file = open('./www/base.css', 'r')
-        content = file.read()
-        file.close()
-        response = 'HTTP/1.1 200 OK\nContent-Type: text/css\n\n' + content
-        self.request.sendall(response.encode())
+        else:
+            if path.exists(BASE_PATH+req[1]):
 
-    def index_html(self):
-        file = open('./www/index.html', 'r')
-        content = file.read()
-        file.close()
-        response = 'HTTP/1.1 200 OK\nContent-Type: text/html\n\n' + content
-        self.request.sendall(response.encode())
+                res = 'HTTP/1.1 200 OK\n'
+                if "html" in req[1]:
+                    res+='Content-Type: text/html\n\n'
+                elif "css" in req[1]:
+                    res+='Content-Type: text/css\n\n'
+                else:
+                    res+='\n'
+                
+                if path.isfile(BASE_PATH+req[1]):
+                    file = open(BASE_PATH+req[1], 'r')
+                    content = file.read()
+                    file.close()
+                    res += content
 
-    def deep_css(self):
-        file = open('./www/deep/deep.css', 'r')
-        content = file.read()
-        file.close()
-        response = 'HTTP/1.1 200 OK\nContent-Type: text/css\n\n' + content
-        self.request.sendall(response.encode())
+                self.request.sendall(res.encode())
 
-    def deep_index(self):
-        file = open('./www/deep/index.html', 'r')
-        content = file.read()
-        file.close()
-        response = 'HTTP/1.1 200 OK\n\n' + content
-        self.request.sendall(response.encode())
+            else:
+                response = 'HTTP/1.1 404 Not Found\n\n'
+                self.request.sendall(response.encode())
+
+        self.request.sendall(bytearray("OK",'utf-8'))
+
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8080
